@@ -1,14 +1,17 @@
-from flask import (Flask, render_template, request)
+from flask import Flask
+from database import db 
+from controllers import controller
 
-app=Flask(__name__)
+#create app
+app = Flask(__name__)
+#configures dataabase
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///eventmaster.db'
+#initialize database
+db.init_app(app)
 
-@app.route("/")
+controller(app)
 
-def home():
-    return render_template("home.html")
-
-def login():
-    return render_template("login.html")
-
-if __name__ == "__main__":
+if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
     app.run(debug=True)

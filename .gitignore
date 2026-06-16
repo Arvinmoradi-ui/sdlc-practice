@@ -1,6 +1,9 @@
 #virtual environment folder
 tutorial-env/
 
+#rusted host as it wouldnt let me commit and push
+rusted-host/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
