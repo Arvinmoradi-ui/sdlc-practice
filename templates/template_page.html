@@ -4,8 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}EventMaster{% endblock %}</title>
+    <link rel="stylesheet" href="{{url_for('static', filename='style.css')}}""
 </head>
 <body>
-    
+    <nav class="navigation">
+        <div class="logo">
+            <a href="/" class="button button-black">EventMaster</a>
+        </div>
+        <div class="nav-tabs">
+            <a href="/conferences" class="button button-gray">Conferences</a>
+            <a href="/meetUps" class="button button-gray">MeetUps</a>
+            <a href="/trainings" class="button button-gray">Trainings</a>
+        </div>
+    </nav>
+    <div style="Padding: 0 20px; max-width: 1200px; margin: 0 auto;">
+    {% block content %}{% endblock %}        
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2026 EventMaster</p>
+    </footer>
 </body>
 </html>

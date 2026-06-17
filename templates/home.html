@@ -1,13 +1,65 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EventMaster</title>
-</head>
-<body>
+{% extends "template_page.html" %}
 
+{% block title %}Home{% endblock %}
 
-    <h1>Home</h1>
-</body>
-</html>
+{% block content %}
+
+<h1 class="title">Home</h1>
+
+<div class="home-grid">
+    
+    <div class="grid-contents">
+        <button class="button button-gray" onclick="document.location='/login'">Login</button>
+
+        <p style="margin-top: 10px;">
+            About us
+        </p>
+        
+    </div>
+
+    <div class="grid-contents">
+        <h3 style="text-align: center;">Not Signed Up?</h3>
+        <p style="margin-top: 10px;">
+    <form action="/signup" method="POST">
+        
+        <div style="margin-bottom: 15px;">
+            <label for="username">Username</label><br>
+            <input type="text" id="username" name="username" required style="width: 100%; padding: 8px;">
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label for="user_firstname">First Name</label><br>
+            <input type="text" id="user_firstname" name="user_firstname" required style="width: 100%; padding: 8px;">
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label for="user_middlename">Middle Name (Optional)</label><br>
+            <input type="text" id="user_middlename" name="user_middlename" style="width: 100%; padding: 8px;">
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label for="user_lastname">Last Name</label><br>
+            <input type="text" id="user_lastname" name="user_lastname" required style="width: 100%; padding: 8px;">
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label for="user_email">Email Address</label><br>
+            <input type="email" id="user_email" name="user_email" required style="width: 100%; padding: 8px;">
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label for="password">Password</label><br>
+            <input type="password" id="password" name="password" required style="width: 100%; padding: 8px;">
+        </div>
+
+        <button type="submit" class="button button-green" style="width: 100%;">Create Account</button>
+
+    </form>
+        </p>
+    </div>
+
+</div>
+
+</div>
+
+{% endblock %}

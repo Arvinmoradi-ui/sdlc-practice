@@ -59,7 +59,7 @@ class Lessons(db.Model):
 #TABLE 3 - Signups
 
 class Signups(db.Model):
-    ___tablename__ = 'signups'
+    __tablename__ = 'signups'
 
     #primary key of signup id
     signup_id: Mapped[int] = mapped_column(primary_key=True, unique=True)
@@ -70,4 +70,8 @@ class Signups(db.Model):
 
     #relationships
     student_id: Mapped[int] = mapped_column(ForeignKey('users.user_id'))
-    lessons_id: Mapped[int] = mapped_column(ForeignKey('users.user_id'))
+    lessons_id: Mapped[int] = mapped_column(ForeignKey('training_lessons.lesson_id'))
+
+
+# formatting and syntax found and used from SQLAlchemy documentation at:
+#https://docs.sqlalchemy.org/en/20/orm/quickstart.html

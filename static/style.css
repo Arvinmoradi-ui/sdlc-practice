@@ -1,0 +1,123 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Sans-serif;
+}
+
+body {
+    background-color: whitesmoke;
+    color: black;
+}
+
+/* colour variables */ 
+:root {
+    --em-black: #000000;
+    --em-green: #228B22;
+    --em-gray: #6c767d;
+}
+
+/* button configuration*/
+
+.button {
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius:5px;
+    font-weight: bold;
+    text-align: center;
+    border: none;
+    cursor: pointer;
+}
+
+.button-black {background-color: var(--em-black); color:whitesmoke}
+.button-gray {background-color: var(--em-gray); color:whitesmoke}
+.button-green {background-color: var(--em-green); color:whitesmoke}
+
+/* Title configuration */
+
+.title {
+    display: block;
+    background-color: var(--em-gray);
+    color: whitesmoke;
+    text-align: center;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+/* navigation configs */
+
+.navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: whitesmoke;
+    padding: 15px 20px;
+    border-bottom: 2px solid grey;
+    margin-bottom: 20px;
+}
+
+.nav-tabs {
+    display: flex;
+    gap: 10px;
+}
+
+.dash-grid {
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 20px;
+    background-color: var(--em-green);
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.grid-contents {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--em-black);
+    color: whitesmoke;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.home-grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 20px;
+    background-color: var(--em-green);
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+/* --- Form Input Configuration --- */
+
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    border-radius: 8px; 
+    border: 1px solid var(--em-gray);
+    background-color: var(--em-black); 
+    color: whitesmoke; 
+    text-align: center; 
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+form label {
+    display: block;
+    text-align: center;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: whitesmoke;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus {
+    outline: none; 
+    border-color: whitesmoke;
+    box-shadow: 0 0 12px white; 
+}
