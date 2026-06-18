@@ -1,6 +1,6 @@
-from flask import (logging, render_template, request, redirect, url_for)
+from flask import (flash, logging, render_template, request, redirect, session, url_for, flash)
 from database import (db, User, Lessons, Signups )
-from werkzeug.security import generate_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 
 def controller(app):
 
@@ -13,8 +13,9 @@ def controller(app):
     #dashboard page
     @app.route("/dashboard")
     def dashboard():
-
-
+        if 'user_id' not in session: 
+            return redirect(url_for('login.html'))
+        
         return render_template('dashboard.html')
     
     #signup routing to connect the form to the database and send off the fields
@@ -37,7 +38,7 @@ def controller(app):
                 user_middlename=form_middlename,
                 user_lastname=form_lastname,
                 user_email=form_email,
-                user_pass_hash=encrypted_password
+                user_pass_hashed=encrypted_password
             )
 
             try: 
@@ -47,16 +48,26 @@ def controller(app):
             except Exception as e:
                 db.session.rollback()
                 return f"An error occured: {str(e)}"
-            
-        return render_template('signup.html')
     
     
     #login page
     @app.route("/login", methods =['GET', 'POST'])
     def login():
         if request.method == 'POST':
+            login_email = request.form.get('user_email')
+            login_pass = request.form.get('password')
 
-            return "logging in"
+            user = User.query.filter_by(user_email=login_email).first()
+
+            if user and check_password_hash(user.user_pass_hashed, login_pass):
+                session['user_id'] = user.user_id
+                session['user_type'] = user.user_type
+                return redirect(url_for('dashboard'))
+            
+            else: 
+                flash("Incorrect email or password, please try again.")
+                return redirect(url_for('login'))
+           
         return render_template('login.html')
     
     #trainings page

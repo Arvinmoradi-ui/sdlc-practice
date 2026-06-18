@@ -6,6 +6,7 @@ from controllers import controller
 app = Flask(__name__)
 #configures dataabase
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///eventmaster.db'
+app.secret_key = 'hashed_password_here'
 #initialize database
 db.init_app(app)
 
