@@ -23,12 +23,32 @@ def controller(app):
         #initliase the fields shown on the dash
         admin_events = 0
         admin_attendees = 0 
+        admin_revenue = 0
+        admin_tasks_list = []
+        teacher_lessons = []
+        student_signups = []
 
+        if current_user_type == 'Admin':
+            admin_events = Lessons.query.count()
+            admin_attendees = Signups.query.count()
+            revenue_query = db.session.query(db.func.sum(Signups.money_paid)).scalar()
+            admin_revenue = revenue_query if revenue_query else 0.0 
+            admin_tasks_list = Signups.query.filter_by(pay_status='Pending').limit(10).all()
 
+        elif current_user_type == 'Teacher':
+            teacher_lessons = Lessons.query.filter_by(teacher_id=current_user_id).all()
 
+        elif current_user_type == 'Student':
+            student_signups = Signups.query.filter_by(student_id=current_user_id).all()
 
+        return render_template('dashboard.html',
+                               events_count=admin_events,
+                               attendee_count=admin_attendees,
+                               revenure_total=admin_revenue,
+                               pending_tasks=admin_tasks_list,
+                               my_lessons=teacher_lessons,
+                               my_signups=student_signups)
 
-        return render_template('dashboard.html')
     
     #signup routing to connect the form to the database and send off the fields
     @app.route("/signup", methods=["POST"])

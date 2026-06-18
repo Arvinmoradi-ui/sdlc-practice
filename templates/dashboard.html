@@ -33,9 +33,19 @@
 
         <div class="grid-contents" style="text-align: center;">
             <h3>Pending Tasks</h3>
-            <p style="font-size: 2em; font-weight: bold; margin-top: 10px; color: var(--em-green);">
-                {{ task_count | default('2') }}
-            </p>
+            {% if pending_tasks %}
+                <ul style="padding-left: 20px; color: var(--em-green); font-size: 0.9em; text-align: left; overflow-y: auto; max-height: 80px;">
+                    {% for task in pending_tasks %}
+                        <li style="margin-bottom: 5px;">
+                            Payment pending: <strong>{{ task.student.user_firstname }}</strong> for {{ task.lesson.lessonname }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p style="font-size: 1.2em; font-weight: bold; margin-top: 10px; color: var(--em-gray); text-align: center;">
+                    All caught up!
+                </p>
+            {% endif %}
         </div>
 
     </div>
