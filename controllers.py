@@ -38,7 +38,7 @@ def controller(app):
                 user_middlename=form_middlename,
                 user_lastname=form_lastname,
                 user_email=form_email,
-                user_pass_hashed=encrypted_password
+                user_pass_hash=encrypted_password
             )
 
             try: 
@@ -59,7 +59,7 @@ def controller(app):
 
             user = User.query.filter_by(user_email=login_email).first()
 
-            if user and check_password_hash(user.user_pass_hashed, login_pass):
+            if user and check_password_hash(user.user_pass_hash, login_pass):
                 session['user_id'] = user.user_id
                 session['user_type'] = user.user_type
                 return redirect(url_for('dashboard'))
