@@ -1,7 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import (Date, String, ForeignKey, Text, DateTime)
+from sqlalchemy import (Date, String, ForeignKey, Text, DateTime, Float)
 from sqlalchemy.orm import (DeclarativeBase, Mapped, backref, mapped_column, relationship)
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from typing import (List, Optional)
 
 # initialise the database here 
@@ -28,6 +28,8 @@ class User(db.Model):
     user_pass_hash: Mapped[str] = mapped_column(String(128))
     #user's account type
     user_type: Mapped[str] = mapped_column(String(20), default='Student')
+    #user's biography
+    user_bio: Mapped[Optional[str]] = mapped_column(Text)
 
     #relationships
     lessons_taught: Mapped[List["Lessons"]] = relationship(backref="teacher")
@@ -46,11 +48,14 @@ class Lessons(db.Model):
     #lesson description
     lesson_desc: Mapped[Optional[str]] = mapped_column(Text)
     #lesson date and time
-    date_and_time: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    date_and_time: Mapped[datetime] = mapped_column(DateTime, default=datetime.now(timezone.utc))
     #total spaces
     num_spaces: Mapped[int] = mapped_column()
     #teacher id
     teacher_id: Mapped[int] = mapped_column(ForeignKey('users.user_id'))
+    #base price of normal ticket
+    base_price: Mapped[float] = mapped_column(Float, default=0.0)
+
 
     #relationships
     sign_ups: Mapped[List["Signups"]] = relationship(backref ="lesson")
@@ -66,7 +71,14 @@ class Signups(db.Model):
     #progress made as a percentage 
     progress: Mapped[int] = mapped_column(default = 0)
     #singup date
-    signup_date: Mapped[datetime] =mapped_column(DateTime, default=datetime.utcnow)
+    signup_date: Mapped[datetime] =mapped_column(DateTime, default=datetime.now(timezone.utc))
+    
+    #ticket details: type, money paid, pay status, dietary req, other requirements
+    ticket_type: Mapped[str] = mapped_column(String(25), default='Standard')
+    money_paid: Mapped[Float] = mapped_column(Float, default=0.0)
+    pay_status: Mapped[str] = mapped_column(String(25), default='Pending')
+    dietary_req: Mapped[Optional[str]] = mapped_column(Text)
+    Special_req: Mapped[Optional[str]] = mapped_column(Text)
 
     #relationships
     student_id: Mapped[int] = mapped_column(ForeignKey('users.user_id'))

@@ -13,9 +13,21 @@ def controller(app):
     #dashboard page
     @app.route("/dashboard")
     def dashboard():
+        #quick security check
         if 'user_id' not in session: 
-            return redirect(url_for('login.html'))
+            return redirect(url_for('login'))
         
+        current_user_id = session['user_id']
+        current_user_type = session['user_type']
+
+        #initliase the fields shown on the dash
+        admin_events = 0
+        admin_attendees = 0 
+
+
+
+
+
         return render_template('dashboard.html')
     
     #signup routing to connect the form to the database and send off the fields

@@ -1,6 +1,7 @@
 from flask import Flask
 from database import User, db 
 from controllers import controller
+from werkzeug.security import generate_password_hash
 
 #create app
 app = Flask(__name__)
@@ -19,12 +20,13 @@ if __name__ == '__main__':
         admin_user_exists = User.query.filter_by(user_type='Admin').first()
 
         if not admin_user_exists:
+            secure_pass = generate_password_hash("admin123", method="pbkdf2:sha256")
             master_account = User(
                 username= "Admin",
                 user_firstname="Sys",
                 user_lastname="Adm",
                 user_email="admin@eventmaster.co.uk",
-                user_pass_hash="hashed_password_here",
+                user_pass_hash=secure_pass,
                 user_type="Admin",
             ) 
 

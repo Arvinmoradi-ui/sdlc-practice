@@ -1,0 +1,129 @@
+{% extends "template_page.html" %}
+
+{% block title %}My Dashboard{% endblock %}
+
+{% block content %}
+
+{% if session['user_type'] == 'Admin' %}
+
+    <h1 class="title">System Administrator Dashboard</h1>
+
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px;">
+        
+        <div class="grid-contents" style="text-align: center;">
+            <h3>Upcoming Events</h3>
+            <p style="font-size: 2em; font-weight: bold; margin-top: 10px; color: var(--em-green);">
+                {{ events_count | default('4') }}
+            </p>
+        </div>
+
+        <div class="grid-contents" style="text-align: center;">
+            <h3>Registrations</h3>
+            <p style="font-size: 2em; font-weight: bold; margin-top: 10px; color: var(--em-green);">
+                {{ attendee_count | default('142') }}
+            </p>
+        </div>
+
+        <div class="grid-contents" style="text-align: center;">
+            <h3>Revenue</h3>
+            <p style="font-size: 2em; font-weight: bold; margin-top: 10px; color: var(--em-green);">
+                £{{ revenue_total | default('4,500') }}
+            </p>
+        </div>
+
+        <div class="grid-contents" style="text-align: center;">
+            <h3>Pending Tasks</h3>
+            <p style="font-size: 2em; font-weight: bold; margin-top: 10px; color: var(--em-green);">
+                {{ task_count | default('2') }}
+            </p>
+        </div>
+
+    </div>
+
+    <div class="grid-contents" style="max-width: 600px; margin: 0 auto;">
+        <h3 style="text-align: center; margin-bottom: 20px;">Ticket Type Distribution</h3>
+        <canvas id="myChart"></canvas>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      const ctx = document.getElementById('myChart');
+      new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: ['Standard', 'Early Bird', 'VIP'],
+          datasets: [{
+            label: 'Tickets Sold',
+            data: [60, 30, 10],
+            backgroundColor: ['#6c767d', '#228B22', '#d3d3d3'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+            plugins: {
+                legend: { labels: { color: 'whitesmoke' } }
+            }
+        }
+      });
+    </script>
+
+
+{% elif session['user_type'] == 'Teacher' %}
+    
+<h1 class="title">Teacher Dashboard</h1>
+    <div class="grid-contents">
+        <h3 style="text-align: center; margin-bottom: 15px;">My Training Sessions</h3>
+        
+        {% if my_lessons %}
+            <table style="width: 100%; border-collapse: collapse; text-align: left; color: whitesmoke;">
+                <tr style="border-bottom: 1px solid var(--em-gray);">
+                    <th style="padding: 10px;">Session Name</th>
+                    <th style="padding: 10px;">Date & Time</th>
+                    <th style="padding: 10px;">Capacity</th>
+                    <th style="padding: 10px;">Price</th>
+                </tr>
+                {% for lesson in my_lessons %}
+                <tr style="border-bottom: 1px solid #333;">
+                    <td style="padding: 10px;">{{ lesson.lessonname }}</td>
+                    <td style="padding: 10px;">{{ lesson.date_and_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td style="padding: 10px;">{{ lesson.num_spaces }}</td>
+                    <td style="padding: 10px;">£{{ "%.2f"|format(lesson.base_price) }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        {% else %}
+            <p style="text-align: center; margin-top: 10px; color: var(--em-gray);">You have no upcoming sessions scheduled.</p>
+        {% endif %}
+    </div>
+
+
+{% elif session['user_type'] == 'Student' %}
+    
+<h1 class="title">Student Dashboard</h1>
+    <div class="grid-contents">
+        <h3 style="text-align: center; margin-bottom: 15px;">My Registered Trainings</h3>
+        
+        {% if my_signups %}
+            <table style="width: 100%; border-collapse: collapse; text-align: left; color: whitesmoke;">
+                <tr style="border-bottom: 1px solid var(--em-gray);">
+                    <th style="padding: 10px;">Training Name</th>
+                    <th style="padding: 10px;">Ticket Type</th>
+                    <th style="padding: 10px;">Amount Paid</th>
+                    <th style="padding: 10px;">Status</th>
+                </tr>
+                {% for signup in my_signups %}
+                <tr style="border-bottom: 1px solid #333;">
+                    <td style="padding: 10px;">{{ signup.lesson.lessonname }}</td>
+                    <td style="padding: 10px;">{{ signup.ticket_type }}</td>
+                    <td style="padding: 10px;">£{{ "%.2f"|format(signup.amount_paid) }}</td>
+                    <td style="padding: 10px; color: var(--em-green);">{{ signup.payment_status }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        {% else %}
+            <p style="text-align: center; margin-top: 10px; color: var(--em-gray);">You have not registered for any events yet.</p>
+        {% endif %}
+    </div>
+{% endif %}
+
+{% endblock %}
