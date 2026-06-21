@@ -1,0 +1,74 @@
+{% extends "template_page.html" %}
+
+{% block title %}Events Management{% endblock %}
+
+{% block content %}
+
+<div style="display: grid; grid-template-columns: 250px 1fr; gap: 30px; margin-top: 20px;">
+
+    <div style="background-color: var(--em-black); padding: 20px; border-radius: 8px; color: whitesmoke;">
+        <h3 style="margin-bottom: 20px; border-bottom: 1px solid var(--em-gray); padding-bottom: 10px;">Event Menu</h3>
+        <ul style="list-style-type: none; padding: 0;">
+            {% if session['user_type'] == 'Teacher' or session['user_type'] == 'Admin' %}
+            <li style="margin-bottom: 15px;">
+                <a href="/trainings" style="color: var(--em-green); text-decoration: none; font-weight: bold;">Create New Training</a>
+            </li>
+            <li style="margin-bottom: 15px;">
+                <a href="/registrations" style="color: whitesmoke; text-decoration: none;">Manage Existing</a>
+            </li>
+            {% else %}
+            <li style="margin-bottom: 15px;">
+                <a href="/events" style="color: var(--em-green); text-decoration: none; font-weight: bold;">Browse Trainings</a>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+
+    <div style="background-color: whitesmoke; padding: 20px; border-radius: 8px; border: 1px solid var(--em-gray);">
+        
+        <h2 style="color: var(--em-black); margin-bottom: 20px;">Create a New Training Session</h2>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div style="background-color: {% if category == 'success' %}#28a745{% else %}#dc3545{% endif %}; color: white; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form action="/trainings" method="POST">
+            <div style="margin-bottom: 15px;">
+                <label for="lessonname" style="color: black; font-weight: bold; display: block; margin-bottom: 5px;">Training Title</label>
+                <input type="text" id="lessonname" name="lessonname" class="login-input" required style="width: 100%; margin: 0; text-align: left;">
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="lesson_desc" style="color: black; font-weight: bold; display: block; margin-bottom: 5px;">Description & Syllabus</label>
+                <textarea id="lesson_desc" name="lesson_desc" rows="4" style="width: 100%; padding: 10px; border-radius: 8px; border: 2px solid var(--em-gray);"></textarea>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px;">
+                <div>
+                    <label for="date_and_time" style="color: black; font-weight: bold; display: block; margin-bottom: 5px;">Date & Time</label>
+                    <input type="datetime-local" id="date_and_time" name="date_and_time" class="login-input" required style="width: 100%; margin: 0;">
+                </div>
+                <div>
+                    <label for="num_spaces" style="color: black; font-weight: bold; display: block; margin-bottom: 5px;">Total Capacity</label>
+                    <input type="number" id="num_spaces" name="num_spaces" min="1" class="login-input" required style="width: 100%; margin: 0;">
+                </div>
+                <div>
+                    <label for="base_price" style="color: black; font-weight: bold; display: block; margin-bottom: 5px;">Base Ticket Price (£)</label>
+                    <input type="number" id="base_price" name="base_price" step="0.01" min="0" class="login-input" required style="width: 100%; margin: 0;">
+                </div>
+            </div>
+
+            <button type="submit" class="button button-green" style="width: 100%;">Publish Training Session</button>
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

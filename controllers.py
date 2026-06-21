@@ -1,4 +1,4 @@
-from flask import (flash, logging, render_template, request, redirect, session, url_for, flash)
+from flask import (app, flash, logging, render_template, request, redirect, session, url_for, flash)
 from database import (db, User, Lessons, Signups )
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -103,7 +103,77 @@ def controller(app):
         return render_template('login.html')
     
     #trainings page
-    @app.route("/trainings")
+    @app.route("/trainings", methods=['GET', 'POST'])
     def trainings():
-
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+            
+        if request.method == 'POST':
+            
+            if session.get('user_type') not in ['Admin', 'Teacher']:
+                flash("Unauthorised Action: You do not have permission to create events.", "error")
+                return redirect(url_for('events'))
+                
+            # Extract data from the HTML form
+            form_name = request.form.get('lessonname')
+            form_desc = request.form.get('lesson_desc')
+            form_date_str = request.form.get('date_and_time')
+            form_spaces = request.form.get('num_spaces')
+            form_price = request.form.get('base_price')
+            
+            # Convert the HTML datetime string into a Python datetime object
+            from datetime import datetime
+            form_date = datetime.strptime(form_date_str, '%Y-%m-%dT%H:%M')
+            
+            # Create the new database record
+            new_lesson = Lessons(
+                lessonname=form_name,
+                lesson_desc=form_desc,
+                date_and_time=form_date,
+                num_spaces=int(form_spaces),
+                base_price=float(form_price),
+                teacher_id=session['user_id'] # Automatically links to the logged-in user!
+            )
+            
+            try:
+                db.session.add(new_lesson)
+                db.session.commit()
+                flash("Training session successfully created!", "success")
+                return redirect(url_for('trainings'))
+            except Exception as e:
+                db.session.rollback()
+                flash(f"An error occurred: {str(e)}", "error")
+                return redirect(url_for('trainings'))
+                
         return render_template('trainings.html')
+    
+    @app.route("/registrations")
+    def registrations():
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+
+        if session.get('user_type') not in ['Admin', 'Teacher']:
+            flash("Access Denied: You do not have permission to view the registrations list.", "error")
+            return redirect(url_for('dashboard'))
+
+        #grab all registraions
+        current_view = request.args.get('view', 'all')
+
+        #filtered view dependant on what someone clicks in the sidebar
+        if current_view == 'pending':
+            filtered_signups = Signups.query.filter_by(payment_status='Pending').all()
+            dynamic_title = "Pending Approvals"
+            
+        elif current_view == 'checkin':
+            filtered_signups = Signups.query.filter_by(payment_status='Completed').all()
+            dynamic_title = "Live Check-in Queue"
+            
+        else:
+
+            filtered_signups = Signups.query.all()
+            dynamic_title = "Master Attendee List"
+
+        return render_template('registrations.html', 
+                               all_signups=filtered_signups, 
+                               current_view=current_view,
+                               page_title=dynamic_title)
