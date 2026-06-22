@@ -206,7 +206,7 @@ def controller(app):
         if uploaded_file and uploaded_file.filename != '':
             filename = secure_filename(uploaded_file.filename)
 
-            if not os.path.eists(app.config['uploads_folder']):
+            if not os.path.exists(app.config['uploads_folder']):
                 os.makedirs(app.config['uploads_folder'])
             
             file_path = os.path.join(app.config['uploads_folder'], filename)
@@ -239,59 +239,65 @@ def controller(app):
                 return redirect(url_for('registrations'))
             
             #grab the form data for the trainings
-            lesson_id = request.form.get('leson_id')
+            lesson_id = request.form.get('lesson_id')
             ticket_type = request.form.get('ticket_type')
             dietary_info = request.form.get('dietary_req')
             special_info = request.form.get('special_req')
-            lesson_info = Lessons.query.filter_by(lesson_id=lesson_id).first()
+            lesson_info = Lessons.query.filter_by(lesson_id=int(lesson_id)).first()
             ticket_price = lesson_info.base_price
             if ticket_type == 'VIP':
                 ticket_price = lesson_info.base_price * 1.5
             elif ticket_type == 'Early Bird':
-                final_price = lesson_info.base_price * 0.8
+                ticket_price = lesson_info.base_price * 0.8
+
+            #create the new entry to signups defaulting to pending
+            new_signup = Signups(
+                student_id=session['user_id'],
+                lessons_id=lesson_id,
+                ticket_type=ticket_type,
+                money_paid=ticket_price,
+                pay_status='Pending',
+                dietary_req=dietary_info,
+                Special_req=special_info
+            )
+
+            try:
+                db.session.add(new_signup)
+                db.session.commit()
+                flash("Registration successful! Please complete your payment.", "success")
+                return redirect(url_for('registrations', view='my_regs'))
+            except Exception as e:
+                db.session.rollback()
+                flash(f"An error occurred: {str(e)}", "error")
+                return redirect(url_for('registrations'))
         
 
+        if current_user_type in ['Admin', 'Teacher']:
+            current_view = request.args.get('view', 'all')
+            if current_view == 'Pending':
+                filtered_signups = Signups.query.filter_by(pay_status='Pending').all()
+                dynamic_title = 'Pending Approvals'
+            elif current_view == 'completed':
+                filtered_signups = Signups.query.filter_by(pay_status='Completed').all()
+                dynamic_title = 'Completed Payments'
+            else:
+                filtered_signups = Signups.query.all()
+                dynamic_title = "Master Student List"
 
+            return render_template('registrations.html', all_signups=filtered_signups, current_view=current_view, page_title=dynamic_title)
+        
+        elif current_user_type == 'Student':
+            current_view = request.args.get('view', 'browse')
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        if session.get('user_type') not in ['Admin', 'Teacher']:
-            flash("Access Denied: You do not have permission to view the registrations list.", "error")
-            return redirect(url_for('dashboard'))
-
-        #grab all registraions
-        current_view = request.args.get('view', 'all')
-
-        #filtered view dependant on what someone clicks in the sidebar
-        if current_view == 'pending':
-            filtered_signups = Signups.query.filter_by(pay_status='Pending').all()
-            dynamic_title = "Pending Approvals"
+            if current_view =='browse':
+                available_lessons = Lessons.query.all()
+                return render_template('registrations.html', current_view=current_view, available_lessons=available_lessons)
             
-        elif current_view == 'checkin':
-            filtered_signups = Signups.query.filter_by(pay_status='Completed').all()
-            dynamic_title = "Live Check-in Queue"
+            elif current_view == 'my_regs':
+                my_signups = Signups.query.filter_by(student_id=session['user_id']).all()
+                return render_template('registrations.html', current_view=current_view, my_signups=my_signups)
             
-        else:
-
-            filtered_signups = Signups.query.all()
-            dynamic_title = "Master Attendee List"
-
-        return render_template('registrations.html', 
-                               all_signups=filtered_signups, 
-                               current_view=current_view,
-                               page_title=dynamic_title)
+            elif current_view == 'book':
+                lesson_id = request.args.get('lesson_id')
+                lesson_to_book = Lessons.query.filter_by(lesson_id=lesson_id).first()
+                return render_template('registrations.html', current_view=current_view, lesson=lesson_to_book)
