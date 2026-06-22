@@ -4,5 +4,46 @@
 
 {% block content %}
 
-<h1 class="title">Speakers</h1>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-top: 20px;">
+    
+    {% if teachers %}
+        {% for teacher in teachers %}
+        <div style="background-color: whitesmoke; border-radius: 8px; border: 1px solid var(--em-gray); padding: 20px;">
+            
+            <div style="border-bottom: 2px solid var(--em-green); padding-bottom: 10px; margin-bottom: 15px;">
+                <h2 style="color: var(--em-black); margin: 0;">{{ teacher.user_firstname }} {{ teacher.user_lastname }}</h2>
+                <p style="color: var(--em-gray); font-weight: bold; margin: 5px 0 0 0;">Lead Instructor</p>
+                <p style="color: var(--em-gray); font-size: 0.9em; margin: 0;">{{ teacher.user_email }}</p>
+            </div>
+
+            <div style="margin-bottom: 15px; min-height: 80px;">
+                <h4 style="color: var(--em-black); margin-bottom: 5px;">Biography</h4>
+                <p style="color: var(--em-black); font-size: 0.95em;">
+                    {{ teacher.user_bio | default('This instructor has not provided a biography yet.', true) }}
+                </p>
+            </div>
+
+            <div style="background-color: #e9ecef; padding: 10px; border-radius: 5px;">
+                <h4 style="color: var(--em-black); margin-bottom: 5px;">Teaching Sessions:</h4>
+                <ul style="list-style-type: none; padding: 0; margin: 0;">
+                    {% if teacher.lessons_taught %}
+                        {% for lesson in teacher.lessons_taught %}
+                            <li style="color: var(--em-black); font-size: 0.9em; margin-bottom: 5px;">
+                                &bull; <strong>{{ lesson.lessonname }}</strong> ({{ lesson.date_and_time.strftime('%b %d') }})
+                            </li>
+                        {% endfor %}
+                    {% else %}
+                        <li style="color: var(--em-gray); font-size: 0.9em;">No upcoming sessions.</li>
+                    {% endif %}
+                </ul>
+            </div>
+
+        </div>
+        {% endfor %}
+    {% else %}
+        <p style="color: white; font-size: 1.2em;">No instructors are currently listed in the system.</p>
+    {% endif %}
+
+</div>
+{% endblock %}
 

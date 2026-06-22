@@ -301,3 +301,46 @@ def controller(app):
                 lesson_id = request.args.get('lesson_id')
                 lesson_to_book = Lessons.query.filter_by(lesson_id=lesson_id).first()
                 return render_template('registrations.html', current_view=current_view, lesson=lesson_to_book)
+
+
+    #speakers page just being a table that everyone can use to view teachers and their info
+    @app.route("/speakers")
+    def speakers():
+        all_teachers = User.query.filter_by(user_type='Teacher').all()
+        return render_template('speakers.html', teachers=all_teachers)
+
+    #settings page - working to serve teachers an area to update their info 
+    #but also the admin to have control of everything
+
+    @app.route("/settings", methods=['GET','POST'])
+    def settings():
+        if 'user_id' not in session or session.get('user_type') not in ['Admin', 'Teacher']:
+            flash("Access Denied: You do not have permission to view settings." , "error")
+            return redirect(url_for('dashboard'))
+        
+        current_user_type = session.get('user_type')
+        current_user_id = session['user_id']
+
+        if request.method == 'POST':
+            if current_user_type == 'Teacher':
+                new_bio = request.form.get('user_bio')
+
+                teacher_files = User.query.filter_by(user_id=current_user_id).first()
+                if teacher_files:
+                    teacher_files.user_bio = new_bio
+                    try: 
+                        db.session.commit()
+                        flash("Biography successfully updated!", "success")
+                    except Exception as e:
+                        db.session.rollback()
+                        flash(f"An error occured: {str(e)}," "error")
+                    
+                    return redirect(url_for('settings'))
+
+        if current_user_type =='Admin':
+            all_users = User.query.all()
+            return render_template('settings.html', all_users=all_users)
+        
+        elif current_user_type == 'Teacher':
+            teacher_files = User.query.filter_by(user_id=current_user_id).first()
+            return render_template('settings.html', teacher=teacher_files)
