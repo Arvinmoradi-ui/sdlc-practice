@@ -1,6 +1,8 @@
+import os 
 from flask import (app, flash, logging, render_template, request, redirect, session, url_for, flash)
 from database import (db, User, Lessons, Signups )
 from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.utils import (secure_filename)
 
 def controller(app):
 
@@ -60,6 +62,7 @@ def controller(app):
             form_lastname = request.form.get('user_lastname')
             form_email = request.form.get('user_email')
             password = request.form.get('password')
+            form_user_type = request.form.get('user_type')
             
             #encrypts the password here
             encrypted_password = generate_password_hash(password, method="pbkdf2:sha256")
@@ -70,7 +73,8 @@ def controller(app):
                 user_middlename=form_middlename,
                 user_lastname=form_lastname,
                 user_email=form_email,
-                user_pass_hash=encrypted_password
+                user_pass_hash=encrypted_password,
+                user_type = form_user_type
             )
 
             try: 
@@ -105,52 +109,166 @@ def controller(app):
     #trainings page
     @app.route("/trainings", methods=['GET', 'POST'])
     def trainings():
+        
         if 'user_id' not in session:
             return redirect(url_for('login'))
-            
+
+        current_user_type = session.get('user_type') 
+        
         if request.method == 'POST':
-            
-            if session.get('user_type') not in ['Admin', 'Teacher']:
-                flash("Unauthorised Action: You do not have permission to create events.", "error")
-                return redirect(url_for('events'))
-                
-            # Extract data from the HTML form
+            if current_user_type not in ['Admin', 'Teacher']:
+                flash("Unauthorised Action: You do not have permission to create trainings.", "error")
+                return redirect(url_for('trainings'))
+
             form_name = request.form.get('lessonname')
             form_desc = request.form.get('lesson_desc')
             form_date_str = request.form.get('date_and_time')
             form_spaces = request.form.get('num_spaces')
             form_price = request.form.get('base_price')
             
-            # Convert the HTML datetime string into a Python datetime object
+            #teacehrs would be self assigned but an admin can basically
+            # choose whatever teacehr they want
+            if current_user_type == 'Admin':
+                assigned_teacher_id = request.form.get('teacher_id')
+            else:
+                assigned_teacher_id = session['user_id']
+
             from datetime import datetime
             form_date = datetime.strptime(form_date_str, '%Y-%m-%dT%H:%M')
             
-            # Create the new database record
             new_lesson = Lessons(
                 lessonname=form_name,
                 lesson_desc=form_desc,
                 date_and_time=form_date,
                 num_spaces=int(form_spaces),
                 base_price=float(form_price),
-                teacher_id=session['user_id'] # Automatically links to the logged-in user!
+                teacher_id=assigned_teacher_id
             )
             
             try:
                 db.session.add(new_lesson)
                 db.session.commit()
                 flash("Training session successfully created!", "success")
-                return redirect(url_for('trainings'))
+                return redirect(url_for('trainings', view='manage'))
             except Exception as e:
                 db.session.rollback()
                 flash(f"An error occurred: {str(e)}", "error")
                 return redirect(url_for('trainings'))
-                
-        return render_template('trainings.html')
+        
+        # view for admins
+        if current_user_type == 'Admin':
+            current_view = request.args.get('view', 'create')
+            manage_list = Lessons.query.all()
+            teacher_list = User.query.filter_by(user_type='Teacher').all()
+            return render_template('trainings.html', current_view=current_view, manage_list=manage_list, teacher_list=teacher_list)
+            
+        #view for teachers
+        elif current_user_type == 'Teacher':
+            current_view = request.args.get('view', 'create')
+            manage_list = Lessons.query.filter_by(teacher_id=session['user_id']).all()
+            return render_template('trainings.html', current_view=current_view, manage_list=manage_list)
+            
+        #view for students
+        elif current_user_type == 'Student':
+            current_view = request.args.get('view', 'enrolled')
+            my_signups = Signups.query.filter_by(student_id=session['user_id']).all()
+            return render_template('trainings.html', current_view=current_view, my_signups=my_signups)
     
-    @app.route("/registrations")
+    #routing for individual pages for each training session
+    @app.route("/hub/<int:lesson_id>")
+    def training_hub(lesson_id):
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        
+        lesson = Lessons.query.filter_by(lesson_id=lesson_id).first()
+
+        if not lesson:
+            flash("Training session not found", "error")
+            return redirect(url_for('trainings'))
+        
+        from database import Materials
+        materials = Materials.query.filter_by(lesson_id=lesson_id).all()
+
+        return render_template('training_hub.html', lesson=lesson, materials=materials)
+    
+    #routing for students to upload files 
+
+    app.config['uploads_folder'] = 'static/uploads'
+
+    @app.route("/upload_material/<int:lesson_id>", methods=['POST'])
+    def upload_material(lesson_id):
+        if 'user_id' not in session or session.get('user_type') not in ['Admin', 'Teacher']:
+            flash("Unauthorised Action", "error")
+            return redirect(url_for('login'))
+        
+        uploaded_file = request.files.get('lesson_file')
+
+        if uploaded_file and uploaded_file.filename != '':
+            filename = secure_filename(uploaded_file.filename)
+
+            if not os.path.eists(app.config['uploads_folder']):
+                os.makedirs(app.config['uploads_folder'])
+            
+            file_path = os.path.join(app.config['uploads_folder'], filename)
+            uploaded_file.save(file_path)
+
+            from database import Materials
+            new_files = Materials(file_name=filename, file_path=file_path, lesson_id=lesson_id)
+
+            db.session.add(new_files)
+            db.session.commit()
+            flash("Files successfully uploaded!", "success")
+        else:
+            flash("no file selected", "error")
+        
+        return redirect(url_for('training_hub', lesson_id=lesson_id))
+
+
+
+
+    @app.route("/registrations", methods=['GET', 'POST'])
     def registrations():
         if 'user_id' not in session:
             return redirect(url_for('login'))
+        
+        current_user_type = session.get('user_type')
+
+        if request.method == 'POST':
+            if current_user_type != 'Student':
+                flash("Only students can book tickets.", "error")
+                return redirect(url_for('registrations'))
+            
+            #grab the form data for the trainings
+            lesson_id = request.form.get('leson_id')
+            ticket_type = request.form.get('ticket_type')
+            dietary_info = request.form.get('dietary_req')
+            special_info = request.form.get('special_req')
+            lesson_info = Lessons.query.filter_by(lesson_id=lesson_id).first()
+            ticket_price = lesson_info.base_price
+            if ticket_type == 'VIP':
+                ticket_price = lesson_info.base_price * 1.5
+            elif ticket_type == 'Early Bird':
+                final_price = lesson_info.base_price * 0.8
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         if session.get('user_type') not in ['Admin', 'Teacher']:
             flash("Access Denied: You do not have permission to view the registrations list.", "error")
@@ -161,11 +279,11 @@ def controller(app):
 
         #filtered view dependant on what someone clicks in the sidebar
         if current_view == 'pending':
-            filtered_signups = Signups.query.filter_by(payment_status='Pending').all()
+            filtered_signups = Signups.query.filter_by(pay_status='Pending').all()
             dynamic_title = "Pending Approvals"
             
         elif current_view == 'checkin':
-            filtered_signups = Signups.query.filter_by(payment_status='Completed').all()
+            filtered_signups = Signups.query.filter_by(pay_status='Completed').all()
             dynamic_title = "Live Check-in Queue"
             
         else:

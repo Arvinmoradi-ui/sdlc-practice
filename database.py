@@ -84,6 +84,15 @@ class Signups(db.Model):
     student_id: Mapped[int] = mapped_column(ForeignKey('users.user_id'))
     lessons_id: Mapped[int] = mapped_column(ForeignKey('training_lessons.lesson_id'))
 
+#table to hold files and link them to the correct lesson
+class Materials(db.Model):
+    __tablename__ = 'materials'
 
+    material_id: Mapped[int] = mapped_column(primary_key=True)
+    file_name: Mapped[str] = mapped_column(String(200))
+    file_path: Mapped[str] = mapped_column(String(300))
+
+    # Links the file to the specific training session
+    lesson_id: Mapped[int] = mapped_column(ForeignKey('training_lessons.lesson_id'))
 # formatting and syntax found and used from SQLAlchemy documentation at:
 #https://docs.sqlalchemy.org/en/20/orm/quickstart.html

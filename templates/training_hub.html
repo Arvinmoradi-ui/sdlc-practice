@@ -1,0 +1,39 @@
+{% extends "template_page.html" %}
+
+{% block title %}Course Hub{% endblock %}
+
+{% block content %}
+
+<h1 class="title">{{ lesson.lessonname }} - Course Hub</h1>
+
+<div class="grid-contents" style="max-width: 800px; margin: 0 auto;">
+    
+    <h3>Downloadable Materials</h3>
+    <hr style="margin: 10px 0; border-color: var(--em-gray);">
+    
+    <ul style="list-style-type: none; padding: 0; margin-bottom: 30px;">
+        {% if materials %}
+            {% for item in materials %}
+                <li style="padding: 10px; border-bottom: 1px solid #ccc;">
+                    <strong>{{ item.file_name }}</strong> 
+                    <a href="#" style="float: right; color: var(--em-green); font-weight: bold;">Download</a>
+                </li>
+            {% endfor %}
+        {% else %}
+            <li>No materials uploaded yet.</li>
+        {% endif %}
+    </ul>
+
+    {% if session['user_type'] in ['Teacher', 'Admin'] %}
+        <div style="background-color: #e9ecef; padding: 15px; border-radius: 5px;">
+            <h4>Teacher Controls: Upload New File</h4>
+            <form action="/upload_material/{{ lesson.lesson_id }}" method="POST" enctype="multipart/form-data" style="margin-top: 10px;">
+                <input type="file" name="course_file" required style="margin-bottom: 10px;">
+                <button type="submit" class="button button-black">Upload File</button>
+            </form>
+        </div>
+    {% endif %}
+
+</div>
+
+{% endblock %}
