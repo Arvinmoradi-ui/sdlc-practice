@@ -334,8 +334,42 @@ def controller(app):
                     except Exception as e:
                         db.session.rollback()
                         flash(f"An error occured: {str(e)}," "error")
-                    
+
+            elif current_user_type == 'Admin':
+                change = request.form.get('change')
+                target_user_id = request.form.get('target_user_id')
+
+                if int(target_user_id) == current_user_id:
+                    flash("Action denied: You cannot change or delete your own admin account.", "error")
                     return redirect(url_for('settings'))
+                
+                target_account = User.query.filter_by(user_id=target_user_id).first()
+                
+                if not target_account:
+                    flash("System error: user not found.", "error")
+                    return redirect(url_for('settings'))
+                
+                if change == 'update_type':
+                    new_type = request.form.get('new_type')
+                    if new_type in ['Admin', 'Teacher', 'Student']:
+                        target_account.user_type = new_type
+                        try:
+                            db.session.commit()
+                            flash(f"Successfully updated {target_account.user_firstname}'s type to {new_type}.", "success")
+                        except Exception as e:
+                            db.session.rollback()
+                            flash(f"database error: {str(e)}", "error")
+
+                elif change == 'delete_user':
+                    try:
+                        db.session.delete(target_account)
+                        db.session.commit()
+                        flash(f"User {target_account.user_firstname} {target_account.user_lastname} has been permanently deleted.", "success")
+                    except Exception as e:
+                        db.session.rollback()
+                        flash("Cannot delete user. They are currently tied to active event records. Delete their tickets first.", "error")   
+                
+                return redirect(url_for('settings'))
 
         if current_user_type =='Admin':
             all_users = User.query.all()

@@ -1,0 +1,104 @@
+{% extends "template_page.html" %}
+
+{% block title %}Settings - EventMaster{% endblock %}
+
+{% block content %}
+<h1 class="title">Settings</h1>
+
+<div style="display: grid; grid-template-columns: 250px 1fr; gap: 30px; margin-top: 20px;">
+
+    <div style="background-color: var(--em-black); padding: 20px; border-radius: 8px; color: whitesmoke; height: fit-content;">
+        <h3 style="margin-bottom: 20px; border-bottom: 1px solid var(--em-gray); padding-bottom: 10px;">Menu</h3>
+        <ul style="list-style-type: none; padding: 0;">
+            
+            {% if session['user_type'] == 'Admin' %}
+                <li style="margin-bottom: 15px;">
+                    <a href="/settings" style="color: var(--em-green); font-weight: bold; text-decoration: none;">User Management</a>
+                </li>
+                
+            {% elif session['user_type'] == 'Teacher' %}
+                <li style="margin-bottom: 15px;">
+                    <a href="/settings" style="color: var(--em-green); font-weight: bold; text-decoration: none;">Profile Settings</a>
+                </li>
+            {% endif %}
+            
+        </ul>
+    </div>
+
+    <div style="background-color: whitesmoke; padding: 20px; border-radius: 8px; border: 1px solid var(--em-gray);">
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div style="background-color: var(--em-gray); color: white; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% if session['user_type'] == 'Admin' %}
+            <h2 style="color: var(--em-black); margin-bottom: 20px;">Master User List</h2>
+            <p style="margin-bottom: 20px; color: var(--em-gray);">View system permissions for all registered accounts.</p>
+
+            <table style="width: 100%; border-collapse: collapse; text-align: left; color: var(--em-black);">
+                <tr style="border-bottom: 2px solid var(--em-gray); background-color: lightgrey;">
+                    <th style="padding: 10px;">ID</th>
+                    <th style="padding: 10px;">Name</th>
+                    <th style="padding: 10px;">Email</th>
+                    <th style="padding: 10px;">System Role</th>
+                    <th style="padding: 10px;">Action</th>
+                </tr>
+                
+                {% if all_users %}
+                    {% for user in all_users %}
+                    <tr style="border-bottom: 1px solid lightgrey;">
+                        <td style="padding: 10px; font-weight: bold;">{{ user.user_id }}</td>
+                        <td style="padding: 10px;">{{ user.user_firstname }} {{ user.user_lastname }}</td>
+                        <td style="padding: 10px;">{{ user.user_email }}</td>
+                        
+                        <td style="padding: 10px;">
+                            <form action="/settings" method="POST" style="display: flex; gap: 10px; margin: 0;">
+                                <input type="hidden" name="action" value="update_role">
+                                <input type="hidden" name="target_user_id" value="{{ user.user_id }}">
+                                
+                                <select name="new_role" style="padding: 5px; border-radius: 3px; border: 1px solid var(--em-gray);">
+                                    <option value="Student" {% if user.user_type == 'Student' %}selected{% endif %}>Student</option>
+                                    <option value="Teacher" {% if user.user_type == 'Teacher' %}selected{% endif %}>Teacher</option>
+                                    <option value="Admin" {% if user.user_type == 'Admin' %}selected{% endif %}>Admin</option>
+                                </select>
+                                
+                                <button type="submit" class="button button-green" style="padding: 5px 10px; font-size: 0.8em;">Update</button>
+                            </form>
+                        </td>
+
+                        <td style="padding: 10px;">
+                            <form action="/settings" method="POST" onsubmit="return confirm('WARNING: Are you sure you want to permanently delete this user?');" style="margin: 0;">
+                                <input type="hidden" name="action" value="delete_user">
+                                <input type="hidden" name="target_user_id" value="{{ user.user_id }}">
+                                <button type="submit" class="button" style="padding: 5px 10px; font-size: 0.8em; background-color: red; color: white; border: none; border-radius: 5px; cursor: pointer;">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td style="padding: 10px; text-align: center;" colspan="5">No users found.</td></tr>
+                {% endif %}
+            </table>
+
+        {% elif session['user_type'] == 'Teacher' %}
+            <h2 style="color: var(--em-black); margin-bottom: 20px;">Update Biography</h2>
+            <p style="margin-bottom: 20px; color: var(--em-gray);">This information will be displayed publicly on the Speakers page.</p>
+            
+            <form action="/settings" method="POST">
+                <div style="margin-bottom: 15px;">
+                    <label for="user_bio" style="color: black; font-weight: bold; display: block; margin-bottom: 5px;">My Biography</label>
+                    <textarea id="user_bio" name="user_bio" rows="6" style="width: 100%; padding: 10px; border-radius: 8px; border: 2px solid var(--em-gray);">{{ teacher.user_bio if teacher.user_bio else '' }}</textarea>
+                </div>
+                <button type="submit" class="button button-green" style="width: 100%;">Save Biography</button>
+            </form>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}
