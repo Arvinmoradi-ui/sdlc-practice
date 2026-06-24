@@ -1,0 +1,7 @@
+tutorial-env/
+venv/
+__pycache__/
+*.__pyc
+eventmaster.db
+test_*.db
+.vscode/
