@@ -5,7 +5,7 @@ FROM python:3.11-slim
 WORKDIR /app
 
 #get requirements and pip install them 
-COPY requirements.text .
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 #copy everything else into container
