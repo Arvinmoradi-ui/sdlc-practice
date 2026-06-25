@@ -19,6 +19,6 @@ ENV FLASK_APP=app.py
 ENV FLASK_ENV=production
 
 #booting up the server
-CMD ["python", "app.py"]
+CMD ["flask", "run", "--host-0.0.0.0"]
 
 # used samples found in https://docs.docker.com/reference/samples/flask/
