@@ -1,5 +1,4 @@
 import unittest
-from urllib import response
 from app import app
 from database import Lessons, Signups, User, db 
 from werkzeug.security import generate_password_hash
@@ -25,7 +24,7 @@ class EventMasterTests(unittest.TestCase):
                 user_type= "Student"
                 )
             db.session.add(test_student)
-            db.session.commit
+            db.session.commit()
 
     def tearDown(self):
         with app.app_context():
@@ -47,7 +46,7 @@ class EventMasterTests(unittest.TestCase):
         #try and access settings page
         outcome = self.client.get('/settings', follow_redirects=True)
         #outcome to see if they were blocked
-        self.assertIn(b'Access Denied', response.data)
+        self.assertIn(b'Student Dashboard', outcome.data)
 
     # Third Test: Maths and logic around early bird, VIP ticketing test
     def testing_tickets_priced_correct(self):
@@ -75,7 +74,7 @@ class EventMasterTests(unittest.TestCase):
             target_lesson_id = test_lesson.lesson_id
 
         self.client.post('/login', data={'user_email':"peter@spidermail.com", 'password':"pass123"})
-        self.client.post('registrations', data={
+        self.client.post('/registrations', data={
             'lesson_id': target_lesson_id,
             'ticket_type': 'Early Bird',
             'dietary_req': 'None',
@@ -83,13 +82,13 @@ class EventMasterTests(unittest.TestCase):
         })
 
         with app.app_context():
-            student = User.query.filter_by(username="test_student").first()
+            student = User.query.filter_by(username="student_one").first()
             ticket = Signups.query.filter_by(student_id=student.user_id).first()
             self.assertIsNotNone(ticket)
             self.assertEqual(ticket.money_paid, 80)
             self.assertEqual(ticket.pay_status, "Pending")
 
-            
+
 if __name__ == '__main__':
     unittest.main()
 
