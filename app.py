@@ -34,4 +34,4 @@ if __name__ == '__main__':
             db.session.commit()
             print("System set up and admin account successfully generated")
 
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000)
